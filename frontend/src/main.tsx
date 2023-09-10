@@ -5,9 +5,10 @@ import {
   RootRoute,
 } from "@tanstack/react-router";
 import { Root } from "./pages/Root.tsx";
-import { Index } from "./pages/Index.tsx";
+import { Index } from "./pages/index.tsx";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
+import "./index.css";
 
 const rootRoute = new RootRoute({
   component: Root,

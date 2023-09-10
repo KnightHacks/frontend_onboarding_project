@@ -6,6 +6,7 @@ import { User, users } from "../database/schema";
 import jwt from "jsonwebtoken";
 import { config } from "dotenv";
 import cors from "@fastify/cors";
+import * as schema from "../database/schema";
 
 config();
 
@@ -22,6 +23,15 @@ server.get("/users", async (req, res) => {
   return await db.select().from(users);
 });
 
+server.delete<{
+  Params: {
+    id: string;
+  };
+}>("/users/:id", async (req, res) => {
+  const { id } = req.params;
+  await db.delete(users);
+});
+
 server.post<{
   Body: {
     username: string;
@@ -31,11 +41,11 @@ server.post<{
   const { username, password } = req.body;
 
   const [user] = await db
-    .selectDistinct()
+    .select()
     .from(users)
     .where(and(eq(users.username, username), eq(users.password, password)));
 
-  if (!user) return { error: "Invalid username or password" };
+  if (!user) return res.status(401).send({ error: "Invalid credentials" });
 
   let newAccessToken = jwt.sign(
     { username: user.username, id: user.id },
@@ -58,14 +68,14 @@ server.post<{
 
 server.post("/refresh", async (req, res) => {
   const { authorization } = req.headers;
-  if (!authorization) return { error: "No authorization header" };
+  if (!authorization) return res.status(401).send({ error: "No token" });
 
   const refreshToken = authorization.split(" ")[1];
-  if (!refreshToken) return { error: "No token" };
+  if (!refreshToken) return res.status(401).send({ error: "No token" });
 
   let accessToken;
   jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET!, (err, user) => {
-    if (err) return { error: "Invalid token" };
+    if (err) return res.status(403).send({ error: "Invalid token" });
 
     let newAccessToken = jwt.sign(
       { username: (user as User).username, id: (user as User).id },

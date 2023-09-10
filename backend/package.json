@@ -5,8 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/index.ts",
-    "drizzle-push": "pnpm exec drizzle-kit push:sqlite",
-    "drizzle-studio": "pnpm exec drizzle-kit studio"
+    "studio": "pnpm exec drizzle-kit push:sqlite && pnpm exec drizzle-kit studio"
   },
   "keywords": [],
   "author": "",
@@ -20,6 +19,7 @@
   },
   "dependencies": {
     "@fastify/cors": "^8.3.0",
+    "@fastify/websocket": "^8.2.0",
     "@types/better-sqlite3": "^7.6.4",
     "better-sqlite3": "^8.6.0",
     "dotenv": "^16.3.1",
