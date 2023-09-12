@@ -29,8 +29,10 @@ server.delete<{
   };
 }>("/users/:id", async (req, res) => {
   const { id } = req.params;
-  await db.delete(users);
-});
+  await db.delete(users).where(eq(users.id, parseInt(id)));
+}); 
+
+
 
 server.post<{
   Body: {
