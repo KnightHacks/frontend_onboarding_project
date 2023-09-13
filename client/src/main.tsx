@@ -2,15 +2,20 @@ import {
   RouterProvider,
   Router,
   Route,
+  redirect,
   RootRoute,
 } from "@tanstack/react-router";
-import { Root } from "./pages/Root.tsx";
+import { Root } from "./components/Root.tsx";
 import { Index } from "./pages/index.tsx";
 import { createRoot } from "react-dom/client";
 import "./index.css";
-import { Admin } from "./pages/Admin.tsx";
-import { Users } from "./pages/Users.tsx";
-import { User } from "../../server/database/schema.ts";
+import { Admin } from "./pages/admin";
+import { isAuthenticated } from "./utils.ts";
+import { Login } from "./pages/Login.tsx";
+import { Register } from "./pages/Register.tsx";
+import { Cart } from "./pages/Cart.tsx";
+import { Items } from "./pages/admin/Items.tsx";
+import { AuthProvider } from "./context/AuthContext.tsx";
 
 const rootRoute = new RootRoute({
   component: Root,
@@ -25,34 +30,59 @@ export const indexRoute = new Route({
 export const adminRoute = new Route({
   getParentRoute: () => rootRoute,
   path: "/admin",
-  component: Admin,
-});
-
-export const usersRoute = new Route({
-  getParentRoute: () => rootRoute,
-  path: "/admin/users",
-  loader: async () => {
-    const res = await fetch("http://localhost:8080/users");
-    const data:User = await res.json();
-    return data;
+  beforeLoad: async () => {
+    if (!isAuthenticated()) {
+      throw redirect({
+        to: "/login",
+      });
+    }
   },
-  component: Users,
+  component: Admin,
 });
 
 export const itemsRoute = new Route({
   getParentRoute: () => rootRoute,
   path: "/admin/items",
-  component: () => <div>Items</div>,
+  beforeLoad: async () => {
+    if (!isAuthenticated()) {
+      throw redirect({
+        to: "/login",
+      });
+    }
+  },
+  component: Items,
+});
+
+export const loginRoute = new Route({
+  getParentRoute: () => rootRoute,
+  path: "/login",
+  component: Login,
+});
+
+export const registerRoute = new Route({
+  getParentRoute: () => rootRoute,
+  path: "/register",
+  component: Register,
+});
+
+export const cartRoute = new Route({
+  getParentRoute: () => rootRoute,
+  path: "/cart",
+  component: () => Cart,
 });
 
 const routeTree = rootRoute.addChildren([
   indexRoute,
   adminRoute,
-  usersRoute,
   itemsRoute,
+  loginRoute,
+  registerRoute,
+  cartRoute,
 ]);
 
-const router = new Router({ routeTree });
+export const router = new Router({
+  routeTree,
+});
 
 declare module "@tanstack/react-router" {
   interface Register {
@@ -60,6 +90,12 @@ declare module "@tanstack/react-router" {
   }
 }
 
-createRoot(document.getElementById("root")!).render(
-  <RouterProvider router={router} />
-);
+const rootElement = document.getElementById("root")!;
+if (!rootElement.innerHTML) {
+  const root = createRoot(rootElement);
+  root.render(
+    <AuthProvider>
+      <RouterProvider router={router} />
+    </AuthProvider>
+  );
+}

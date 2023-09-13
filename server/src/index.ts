@@ -2,11 +2,10 @@ import fastify from "fastify";
 import { drizzle, BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
 import { eq, and } from "drizzle-orm";
 import Database from "better-sqlite3";
-import { User, users } from "../database/schema";
+import { Item, User, items, users } from "../database/schema";
 import jwt from "jsonwebtoken";
 import { config } from "dotenv";
 import cors from "@fastify/cors";
-import * as schema from "../database/schema";
 
 config();
 
@@ -19,8 +18,64 @@ server.get("/ping", async (req, res) => {
   return "pong\n";
 });
 
+server.get("/me", async (req, res) => {
+  const { authorization } = req.headers;
+  if (!authorization) return res.status(401).send({ error: "No token" });
+
+  const accessToken = authorization.split(" ")[1];
+  if (!accessToken) return res.status(401).send({ error: "No token" });
+
+  const user = await jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET!);
+  const userId = (user as User).id;
+
+  let [me] = await db.select().from(users).where(eq(users.id, userId));
+  return me;
+});
+
 server.get("/users", async (req, res) => {
   return await db.select().from(users);
+});
+
+server.get<{
+  Params: {
+    id: string;
+  };
+}>("/users/:id", async (req, res) => {
+  const { id } = req.params;
+  const [user] = await db
+    .select()
+    .from(users)
+    .where(eq(users.id, parseInt(id)));
+  return user;
+});
+
+server.post<{
+  Body: User;
+}>("/users", async (req, res) => {
+  const newUser = req.body;
+  const [existingUser] = await db
+    .select()
+    .from(users)
+    .where(eq(users.username, newUser.username));
+  if (existingUser)
+    return res.status(409).send({ error: "User already exists" });
+  await db.insert(users).values(newUser);
+  return newUser;
+});
+
+server.put<{
+  Params: {
+    id: string;
+  };
+  Body: User;
+}>("/users/:id", async (req, res) => {
+  const { id } = req.params;
+  const newUser = req.body;
+  await db
+    .update(users)
+    .set(newUser)
+    .where(eq(users.id, parseInt(id)));
+  return newUser;
 });
 
 server.delete<{
@@ -30,9 +85,7 @@ server.delete<{
 }>("/users/:id", async (req, res) => {
   const { id } = req.params;
   await db.delete(users).where(eq(users.id, parseInt(id)));
-}); 
-
-
+});
 
 server.post<{
   Body: {
@@ -65,7 +118,7 @@ server.post<{
     }
   );
 
-  return { accessToken: newAccessToken, refreshToken: newRefreshToken };
+  return { accessToken: newAccessToken, refreshToken: newRefreshToken, user };
 });
 
 server.post("/refresh", async (req, res) => {
@@ -90,6 +143,55 @@ server.post("/refresh", async (req, res) => {
   });
 
   return { accessToken };
+});
+
+server.get("/items", async (req, res) => {
+  return await db.select().from(items);
+});
+
+server.get<{
+  Params: {
+    id: string;
+  };
+}>("/items/:id", async (req, res) => {
+  const { id } = req.params;
+  const [item] = await db
+    .select()
+    .from(items)
+    .where(eq(items.id, parseInt(id)));
+  return item;
+});
+
+server.post<{
+  Body: Item;
+}>("/items", async (req, res) => {
+  const newItem = req.body;
+  await db.insert(items).values(newItem);
+  return newItem;
+});
+
+server.put<{
+  Params: {
+    id: string;
+  };
+  Body: Item;
+}>("/items/:id", async (req, res) => {
+  const { id } = req.params;
+  const newItem = req.body;
+  await db
+    .update(items)
+    .set(newItem)
+    .where(eq(items.id, parseInt(id)));
+  return newItem;
+});
+
+server.delete<{
+  Params: {
+    id: string;
+  };
+}>("/items/:id", async (req, res) => {
+  const { id } = req.params;
+  await db.delete(items).where(eq(items.id, parseInt(id)));
 });
 
 server.listen({ port: 8080 }, (err, address) => {

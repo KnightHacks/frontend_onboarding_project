@@ -8,6 +8,7 @@ export const users = sqliteTable("users", {
   username: text("username").notNull(),
   password: text("password").notNull(),
   age: integer("age").notNull(),
+  isAdmin: integer("is_admin").notNull(),
 });
 
 export const usersRelations = relations(users, ({ many }) => ({
