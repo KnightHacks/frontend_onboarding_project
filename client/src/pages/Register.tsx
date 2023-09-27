@@ -1,25 +1,29 @@
 import { useState } from "react";
 import { User } from "../../../server/database/schema";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 
 export function Register() {
-  const [user, setUser] = useState<Omit<User, "id">>({
+  const navigate = useNavigate();
+
+  const [user, setUser] = useState<Omit<User, "userId">>({
     firstName: "",
     lastName: "",
     username: "",
     password: "",
-    age: 0,
     isAdmin: 0,
   });
 
   const register = async () => {
-    await fetch("http://localhost:8080/users", {
+    const res = await fetch("http://localhost:8080/users", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify(user),
     });
+
+    if (!res.ok) return false;
+    return true;
   };
 
   return (
@@ -27,9 +31,11 @@ export function Register() {
       <form
         placeholder="Age"
         className="flex flex-col text-sm w-72"
-        onSubmit={(e) => {
+        onSubmit={async (e) => {
           e.preventDefault();
-          register();
+          const success = await register();
+          if (success) navigate({ to: "/login" });
+          else alert("Registration failed"); // consider a better way to handle this
         }}
       >
         <label htmlFor="firstName">First Name</label>
@@ -87,19 +93,6 @@ export function Register() {
               password: e.target.value,
             })
           }
-        />
-        <label htmlFor="age">Age</label>
-        <input
-          className="border px-3 py-2 mb-4"
-          id="age"
-          type="number"
-          value={user.age}
-          onChange={(e) => {
-            setUser({
-              ...user,
-              age: parseInt(e.target.value),
-            });
-          }}
         />
         <button className="border px-3 py-2 mb-2 bg-black text-white border-black font-bold uppercase mt-4">
           Register

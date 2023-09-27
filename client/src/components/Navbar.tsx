@@ -13,11 +13,11 @@ export function Navbar() {
         <li>
           <Link to="/">Home</Link>
         </li>
-        {user?.isAdmin && (
+        {user?.isAdmin ? (
           <li>
             <Link to="/admin">Admin</Link>
           </li>
-        )}
+        ) : null}
         <li>
           <Link to="/cart">Cart</Link>
         </li>

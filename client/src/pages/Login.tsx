@@ -14,10 +14,11 @@ export function Login() {
     <div className="flex flex-1  items-center justify-center flex-col">
       <form
         className="flex flex-col text-sm w-72"
-        onSubmit={(e) => {
+        onSubmit={async (e) => {
           e.preventDefault();
-          login(username, password);
-          navigate({ to: "/" });
+          const success = await login(username, password);
+          if (success) navigate({ to: "/" });
+          else alert("Login failed"); // consider a better way to handle this
         }}
       >
         <label htmlFor="username">Username</label>

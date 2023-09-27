@@ -2,6 +2,7 @@ import { useContext, useEffect } from "react";
 import { isValidToken } from "../utils";
 import { User } from "../../../server/database/schema";
 import { AuthContext } from "../context/AuthContext";
+import { useNavigate } from "@tanstack/react-router";
 
 async function fetchCurrentUser() {
   const accessToken = localStorage.getItem("accessToken");
@@ -21,6 +22,7 @@ async function fetchCurrentUser() {
 }
 
 export const useAuth = () => {
+  const navigate = useNavigate();
   const { user, setUser } = useContext(AuthContext);
   const isAuthenticated = !!user;
 
@@ -33,7 +35,7 @@ export const useAuth = () => {
       body: JSON.stringify({ username, password }),
     });
 
-    if (!response.ok) return;
+    if (!response.ok) return false;
 
     const { accessToken, refreshToken, user } = await response.json();
 
@@ -41,12 +43,15 @@ export const useAuth = () => {
     localStorage.setItem("refreshToken", refreshToken);
 
     setUser(user);
+
+    return true;
   };
 
   const logout = () => {
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refreshToken");
     setUser(null);
+    navigate({ to: "/" });
   };
 
   useEffect(() => {
