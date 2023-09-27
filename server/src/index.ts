@@ -1,8 +1,8 @@
 import fastify from "fastify";
 import { drizzle, BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
-import { eq, and } from "drizzle-orm";
+import { eq, and, exists } from "drizzle-orm";
 import Database from "better-sqlite3";
-import { Item, User, items, users } from "../database/schema";
+import { Item, User, cartItems, carts, items, users } from "../database/schema";
 import jwt from "jsonwebtoken";
 import { config } from "dotenv";
 import cors from "@fastify/cors";
@@ -192,6 +192,151 @@ server.delete<{
 }>("/items/:id", async (req, res) => {
   const { id } = req.params;
   await db.delete(items).where(eq(items.itemId, parseInt(id)));
+});
+
+server.get<{
+  Params: {
+    userId: string;
+  };
+}>("/users/:userId/cart", async (req, res) => {
+  const { userId } = req.params;
+  const [cart] = await db
+    .select()
+    .from(carts)
+    .where(eq(carts.userId, parseInt(userId)))
+    .leftJoin(cartItems, eq(cartItems.cartId, carts.cartId))
+    .leftJoin(items, eq(items.itemId, cartItems.itemId))
+    .groupBy(carts.cartId);
+
+  return cart;
+});
+
+server.post<{
+  Params: {
+    userId: string;
+  };
+  Body: {
+    itemId: string;
+    quantity: number;
+  };
+}>("/users/:userId/cart", async (req, res) => {
+  const { userId } = req.params;
+  const { itemId, quantity } = req.body;
+  const [cart] = await db
+    .select()
+    .from(carts)
+    .where(eq(carts.userId, parseInt(userId)));
+  if (!cart) {
+    throw new Error("Cart not found");
+  }
+  const [item] = await db
+    .select()
+    .from(items)
+    .where(eq(items.itemId, parseInt(itemId)));
+  if (!item) {
+    throw new Error("Item not found");
+  }
+  const [existingCartItem] = await db
+    .select()
+    .from(cartItems)
+    .where(
+      and(
+        eq(cartItems.cartId, cart.cartId),
+        eq(cartItems.itemId, parseInt(itemId))
+      )
+    );
+  if (existingCartItem) {
+    await db
+      .update(cartItems)
+      .set({
+        quantity: existingCartItem.quantity + quantity,
+      })
+      .where(eq(cartItems.cartItemId, existingCartItem.cartItemId));
+  } else {
+    await db.insert(cartItems).values({
+      cartId: cart.cartId,
+      itemId: parseInt(itemId),
+      quantity: quantity,
+    });
+  }
+  return { success: true };
+});
+
+server.put<{
+  Params: {
+    userId: string;
+    cartItemId: string;
+  };
+  Body: {
+    quantity: number;
+  };
+}>("/users/:userId/cart/:cartItemId", async (req, res) => {
+  const { userId, cartItemId } = req.params;
+  const { quantity } = req.body;
+  const [cartItem] = await db
+    .select()
+    .from(cartItems)
+    .where(
+      and(
+        eq(cartItems.cartItemId, parseInt(cartItemId)),
+        exists(
+          db
+            .select()
+            .from(carts)
+            .where(
+              and(
+                eq(carts.cartId, cartItems.cartId),
+                eq(carts.userId, parseInt(userId))
+              )
+            )
+        )
+      )
+    );
+  if (!cartItem) {
+    throw new Error("Cart item not found");
+  }
+  await db
+    .update(cartItems)
+    .set({
+      quantity: quantity,
+    })
+    .where(eq(cartItems.cartId, parseInt(cartItemId)));
+  return { success: true };
+});
+
+server.delete<{
+  Params: {
+    userId: string;
+    cartItemId: string;
+  };
+}>("/users/:userId/cart/:cartItemId", async (req, res) => {
+  const { userId, cartItemId } = req.params;
+  const [cartItem] = await db
+    .select()
+    .from(cartItems)
+    .where(
+      and(
+        eq(cartItems.cartItemId, parseInt(cartItemId)),
+        exists(
+          db
+            .select()
+            .from(carts)
+            .where(
+              and(
+                eq(carts.cartId, cartItems.cartId),
+                eq(carts.userId, parseInt(userId))
+              )
+            )
+        )
+      )
+    );
+  if (!cartItem) {
+    throw new Error("Cart item not found");
+  }
+  await db
+    .delete(cartItems)
+    .where(eq(cartItems.cartItemId, parseInt(cartItemId)));
+  return { success: true };
 });
 
 server.listen({ port: 8080 }, (err, address) => {

@@ -4,12 +4,11 @@ import { InferInsertModel, InferSelectModel, relations } from "drizzle-orm";
 export const users = sqliteTable("users", {
   userId: integer("UserID").primaryKey(),
   username: text("Username").notNull(),
-  email: text("Email").notNull(),
   password: text("Password").notNull(),
 });
 
 export const carts = sqliteTable("carts", {
-  cardId: integer("CartID").primaryKey(),
+  cartId: integer("CartID").primaryKey(),
   userId: integer("UserID").notNull(),
 });
 
@@ -22,8 +21,8 @@ export const items = sqliteTable("items", {
 });
 
 export const cartItems = sqliteTable("cart_items", {
-  cardItemId: integer("CartItemID").primaryKey(),
-  cardId: integer("CartID").notNull(),
+  cartItemId: integer("CartItemID").primaryKey(),
+  cartId: integer("CartID").notNull(),
   itemId: integer("ItemID").notNull(),
   quantity: integer("Quantity").notNull(),
 });
@@ -44,8 +43,8 @@ export const cartsRelations = relations(carts, ({ one, many }) => ({
 
 export const cartItemsRelations = relations(cartItems, ({ one, many }) => ({
   cart: one(carts, {
-    fields: [cartItems.cardId],
-    references: [carts.cardId],
+    fields: [cartItems.cartId],
+    references: [carts.cartId],
   }),
   item: one(items, {
     fields: [cartItems.itemId],
