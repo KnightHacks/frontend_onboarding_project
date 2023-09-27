@@ -26,9 +26,9 @@ server.get("/me", async (req, res) => {
   if (!accessToken) return res.status(401).send({ error: "No token" });
 
   const user = await jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET!);
-  const userId = (user as User).id;
+  const userId = (user as User).userId;
 
-  let [me] = await db.select().from(users).where(eq(users.id, userId));
+  let [me] = await db.select().from(users).where(eq(users.userId, userId));
   return me;
 });
 
@@ -45,7 +45,7 @@ server.get<{
   const [user] = await db
     .select()
     .from(users)
-    .where(eq(users.id, parseInt(id)));
+    .where(eq(users.userId, parseInt(id)));
   return user;
 });
 
@@ -74,7 +74,7 @@ server.put<{
   await db
     .update(users)
     .set(newUser)
-    .where(eq(users.id, parseInt(id)));
+    .where(eq(users.userId, parseInt(id)));
   return newUser;
 });
 
@@ -84,7 +84,7 @@ server.delete<{
   };
 }>("/users/:id", async (req, res) => {
   const { id } = req.params;
-  await db.delete(users).where(eq(users.id, parseInt(id)));
+  await db.delete(users).where(eq(users.userId, parseInt(id)));
 });
 
 server.post<{
@@ -103,7 +103,7 @@ server.post<{
   if (!user) return res.status(401).send({ error: "Invalid credentials" });
 
   let newAccessToken = jwt.sign(
-    { username: user.username, id: user.id },
+    { username: user.username, id: user.userId },
     process.env.ACCESS_TOKEN_SECRET!,
     {
       expiresIn: "10m",
@@ -111,7 +111,7 @@ server.post<{
   );
 
   let newRefreshToken = jwt.sign(
-    { username: user.username, id: user.id },
+    { username: user.username, id: user.userId },
     process.env.REFRESH_TOKEN_SECRET!,
     {
       expiresIn: "7d",
@@ -133,7 +133,7 @@ server.post("/refresh", async (req, res) => {
     if (err) return res.status(403).send({ error: "Invalid token" });
 
     let newAccessToken = jwt.sign(
-      { username: (user as User).username, id: (user as User).id },
+      { username: (user as User).username, id: (user as User).userId },
       process.env.ACCESS_TOKEN_SECRET!,
       {
         expiresIn: "10m",
@@ -158,7 +158,7 @@ server.get<{
   const [item] = await db
     .select()
     .from(items)
-    .where(eq(items.id, parseInt(id)));
+    .where(eq(items.itemId, parseInt(id)));
   return item;
 });
 
@@ -181,7 +181,7 @@ server.put<{
   await db
     .update(items)
     .set(newItem)
-    .where(eq(items.id, parseInt(id)));
+    .where(eq(items.itemId, parseInt(id)));
   return newItem;
 });
 
@@ -191,7 +191,7 @@ server.delete<{
   };
 }>("/items/:id", async (req, res) => {
   const { id } = req.params;
-  await db.delete(items).where(eq(items.id, parseInt(id)));
+  await db.delete(items).where(eq(items.itemId, parseInt(id)));
 });
 
 server.listen({ port: 8080 }, (err, address) => {

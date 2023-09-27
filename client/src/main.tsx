@@ -16,6 +16,7 @@ import { Register } from "./pages/Register.tsx";
 import { Cart } from "./pages/Cart.tsx";
 import { Items } from "./pages/admin/Items.tsx";
 import { AuthProvider } from "./context/AuthContext.tsx";
+import { Users } from "./pages/admin/Users.tsx";
 
 const rootRoute = new RootRoute({
   component: Root,
@@ -53,6 +54,19 @@ export const itemsRoute = new Route({
   component: Items,
 });
 
+export const usersRoute = new Route({
+  getParentRoute: () => rootRoute,
+  path: "/admin/users",
+  beforeLoad: async () => {
+    if (!isAuthenticated()) {
+      throw redirect({
+        to: "/login",
+      });
+    }
+  },
+  component: Users,
+});
+
 export const loginRoute = new Route({
   getParentRoute: () => rootRoute,
   path: "/login",
@@ -68,7 +82,7 @@ export const registerRoute = new Route({
 export const cartRoute = new Route({
   getParentRoute: () => rootRoute,
   path: "/cart",
-  component: () => Cart,
+  component: Cart,
 });
 
 const routeTree = rootRoute.addChildren([
@@ -78,6 +92,7 @@ const routeTree = rootRoute.addChildren([
   loginRoute,
   registerRoute,
   cartRoute,
+  usersRoute,
 ]);
 
 export const router = new Router({
