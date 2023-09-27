@@ -226,22 +226,33 @@ server.post<{
 }>("/users/:userId/cart", async (req, res) => {
   const { userId } = req.params;
   const { itemId, quantity } = req.body;
-  const [cart] = await db
-    .select()
-    .from(carts)
-    .where(eq(carts.userId, parseInt(userId)));
-  if (!cart) {
-    await db.insert(carts).values({
-      userId: parseInt(userId),
-    });
-  }
+
   const [item] = await db
     .select()
     .from(items)
     .where(eq(items.itemId, parseInt(itemId)));
   if (!item) {
-    throw new Error("Item not found");
+    return res.status(404).send({ error: "Item not found" });
   }
+
+  const [cart] = await db
+    .select()
+    .from(carts)
+    .where(eq(carts.userId, parseInt(userId)));
+  if (!cart) {
+    await db.transaction((tx) => {
+      tx.insert(carts).values({
+        userId: parseInt(userId),
+      });
+      tx.insert(cartItems).values({
+        cartId: parseInt(userId),
+        itemId: parseInt(itemId),
+        quantity: quantity,
+      });
+    });
+    return { success: true };
+  }
+
   const [existingCartItem] = await db
     .select()
     .from(cartItems)

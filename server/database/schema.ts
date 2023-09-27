@@ -12,7 +12,10 @@ export const users = sqliteTable("users", {
 
 export const carts = sqliteTable("carts", {
   cartId: integer("cardId").primaryKey(),
-  userId: integer("userId").references(() => users.userId),
+  userId: integer("userId").references(() => users.userId, {
+    onDelete: "cascade",
+    onUpdate: "cascade",
+  }),
 });
 
 export const items = sqliteTable("items", {
@@ -21,12 +24,23 @@ export const items = sqliteTable("items", {
   description: text("description").notNull(),
   price: integer("price").notNull(),
   stockQuantity: integer("stockQuantity").notNull(),
+  image: text("image").notNull(),
 });
 
 export const cartItems = sqliteTable("cart_items", {
   cartItemId: integer("cartItemId").primaryKey(),
-  cartId: integer("cartId").notNull(),
-  itemId: integer("itemId").notNull(),
+  cartId: integer("cartId")
+    .notNull()
+    .references(() => carts.cartId, {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    }),
+  itemId: integer("itemId")
+    .notNull()
+    .references(() => items.itemId, {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    }),
   quantity: integer("quantity").notNull(),
 });
 
