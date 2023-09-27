@@ -1,32 +1,33 @@
 import { integer, text, sqliteTable } from "drizzle-orm/sqlite-core";
-import { InferInsertModel, InferSelectModel, relations} from "drizzle-orm";
-
-// TODO: Fix foreign key constraints
+import { InferInsertModel, InferSelectModel, relations } from "drizzle-orm";
 
 export const users = sqliteTable("users", {
-  userId: integer("UserID").primaryKey(),
-  username: text("Username").notNull(),
-  password: text("Password").notNull(),
+  userId: integer("userId").primaryKey(),
+  firstName: text("firstName").notNull(),
+  lastName: text("lastName").notNull(),
+  username: text("userName").notNull(),
+  password: text("password").notNull(),
+  isAdmin: integer("isAdmin").notNull(),
 });
 
 export const carts = sqliteTable("carts", {
-  cartId: integer("CartID").primaryKey(),
-  userId: integer("UserID").notNull(),
+  cartId: integer("cardId").primaryKey(),
+  userId: integer("userId").references(() => users.userId),
 });
 
 export const items = sqliteTable("items", {
-  itemId: integer("ItemID").primaryKey(),
-  itemName: text("ItemName").notNull(),
-  description: text("Description").notNull(),
-  price: integer("Price").notNull(),
-  stockQuantity: integer("StockQuantity").notNull(),
+  itemId: integer("itemId").primaryKey(),
+  itemName: text("itemName").notNull(),
+  description: text("description").notNull(),
+  price: integer("price").notNull(),
+  stockQuantity: integer("stockQuantity").notNull(),
 });
 
 export const cartItems = sqliteTable("cart_items", {
-  cartItemId: integer("CartItemID").primaryKey(),
-  cartId: integer("CartID").notNull(),
-  itemId: integer("ItemID").notNull(),
-  quantity: integer("Quantity").notNull(),
+  cartItemId: integer("cartItemId").primaryKey(),
+  cartId: integer("cartId").notNull(),
+  itemId: integer("itemId").notNull(),
+  quantity: integer("quantity").notNull(),
 });
 
 export const usersRelations = relations(users, ({ one }) => ({
