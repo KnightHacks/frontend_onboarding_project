@@ -24,13 +24,14 @@ The client has provided you with a list of requirements for the project. You wil
 - [ ] The home page should have a way that allows the user to view their cart.
 - [ ] The cart view should display all products that the user has added to their cart.
 - [ ] In the cart view, the user should be able to place an order.
-- [ ] When the user places an order, the cart should be cleared and the user should be notified that their order has been placed.
+- [ ] When the user places an order, the cart should be cleared and the user should be notified that their order has been placed (this shouldn't create an actual resource)
 
 ### Admin Page
 - [ ] The admin page should display a list of all products available for sale.
 - [ ] The admin page should have a way to add a new product.
 - [ ] The admin page should have a way to edit an existing product.
 - [ ] The admin page should have a way to delete an existing product.
+- [ ] Optional: The admin page should allow you manage users. You should be able to add, edit, and delete users.
 
 ## Important Notes
 - You are free to use any libraries you want to use for this project.
