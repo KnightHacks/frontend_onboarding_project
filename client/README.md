@@ -31,7 +31,7 @@ The client has provided you with a list of requirements for the project. You wil
 - [ ] The admin page should have a way to add a new product.
 - [ ] The admin page should have a way to edit an existing product.
 - [ ] The admin page should have a way to delete an existing product.
-- [ ] Optional: The admin page should allow you manage users. You should be able to add, edit, and delete users.
+- [ ] Optional: The admin page should allow you to manage users. You should be able to add, edit, and delete users.
 
 ## Important Notes
 - You are free to use any libraries you want to use for this project.
