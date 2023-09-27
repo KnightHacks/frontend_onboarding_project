@@ -5,20 +5,20 @@ This folder holds all the business logic for the API of a mock ecommerce site. Y
 To get started, you will need to install the dependencies and run the server. To do this, run the following commands in the terminal:
 
 ```bash
-npm install 
-npm run dev
+pnpm install 
+pnpm run dev
 ```
 
-This API uses DrizzleORM to interface with a SQLite database. An existing schema is provided in the `server/database/schema.sql` file. To sync the schema with the database, run the following command in the terminal:
+This API uses DrizzleORM to interface with a SQLite database. An existing schema is provided in the `/database/schema.ts` file. To sync this schema with the database, run the following command in the terminal:
 
 ```bash
-npm run db:push
+pnpm run db:push
 ```
 
 To explore your database, we can use Drizzle Studio by running the following command in the terminal:
 
 ```bash
-npm run studio 
+pnpm run db:studio 
 ```
 This will launch Drizzle Studio on host `0.0.0.0`.
 
