@@ -2,7 +2,7 @@
 Welcome to the Frontend Onboarding Project! This project is designed to help you get up to speed with the technologies we use at KnightHacks.
 
 ## Getting Started
-To get started, you'll need to install a few things. First, you'll need to install [Node.js](https://nodejs.org/en/). This will install Node Package Manager (npm) as well. Next, you'll need to install [Git](https://git-scm.com/) and pnpm. To install pnpm, run the following command:
+To get started, you'll need to install a few things. First, you'll need to install [Node.js](https://nodejs.org/en/). This will install Node Package Manager (npm) as well. Next, you'll need to install [Git](https://git-scm.com/) and [pnpm](https://pnpm.io/installation#using-npm). To install pnpm, run the following command:
 ```
 npm install -g pnpm
 ```
