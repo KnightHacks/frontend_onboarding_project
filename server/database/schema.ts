@@ -1,5 +1,7 @@
 import { integer, text, sqliteTable } from "drizzle-orm/sqlite-core";
-import { InferInsertModel, InferSelectModel, relations } from "drizzle-orm";
+import { InferInsertModel, InferSelectModel, relations} from "drizzle-orm";
+
+// TODO: Fix foreign key constraints
 
 export const users = sqliteTable("users", {
   userId: integer("UserID").primaryKey(),

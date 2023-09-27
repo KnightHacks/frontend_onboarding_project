@@ -192,6 +192,7 @@ server.delete<{
 }>("/items/:id", async (req, res) => {
   const { id } = req.params;
   await db.delete(items).where(eq(items.itemId, parseInt(id)));
+  return { success: true };
 });
 
 server.get<{
@@ -200,15 +201,18 @@ server.get<{
   };
 }>("/users/:userId/cart", async (req, res) => {
   const { userId } = req.params;
-  const [cart] = await db
+  const userCartItems = await db
     .select()
-    .from(carts)
-    .where(eq(carts.userId, parseInt(userId)))
-    .leftJoin(cartItems, eq(cartItems.cartId, carts.cartId))
-    .leftJoin(items, eq(items.itemId, cartItems.itemId))
-    .groupBy(carts.cartId);
-
-  return cart;
+    .from(cartItems)
+    .where(
+      and(
+        eq(cartItems.cartId, carts.cartId),
+        eq(carts.userId, parseInt(userId))
+      )
+    )
+    .leftJoin(items, eq(cartItems.itemId, items.itemId))
+    .leftJoin(carts, eq(cartItems.cartId, carts.cartId));
+  return userCartItems;
 });
 
 server.post<{
@@ -227,7 +231,9 @@ server.post<{
     .from(carts)
     .where(eq(carts.userId, parseInt(userId)));
   if (!cart) {
-    throw new Error("Cart not found");
+    await db.insert(carts).values({
+      userId: parseInt(userId),
+    });
   }
   const [item] = await db
     .select()
@@ -276,24 +282,15 @@ server.put<{
   const [cartItem] = await db
     .select()
     .from(cartItems)
-    .where(
+    .leftJoin(
+      carts,
       and(
-        eq(cartItems.cartItemId, parseInt(cartItemId)),
-        exists(
-          db
-            .select()
-            .from(carts)
-            .where(
-              and(
-                eq(carts.cartId, cartItems.cartId),
-                eq(carts.userId, parseInt(userId))
-              )
-            )
-        )
+        eq(carts.cartId, cartItems.cartId),
+        eq(carts.userId, parseInt(userId))
       )
     );
   if (!cartItem) {
-    throw new Error("Cart item not found");
+    return res.status(404).send({ error: "Cart item not found" });
   }
   await db
     .update(cartItems)
@@ -314,31 +311,22 @@ server.delete<{
   const [cartItem] = await db
     .select()
     .from(cartItems)
-    .where(
+    .leftJoin(
+      carts,
       and(
-        eq(cartItems.cartItemId, parseInt(cartItemId)),
-        exists(
-          db
-            .select()
-            .from(carts)
-            .where(
-              and(
-                eq(carts.cartId, cartItems.cartId),
-                eq(carts.userId, parseInt(userId))
-              )
-            )
-        )
+        eq(carts.cartId, cartItems.cartId),
+        eq(carts.userId, parseInt(userId))
       )
-    );
+    )
+    .where(eq(cartItems.cartItemId, parseInt(cartItemId)));
   if (!cartItem) {
-    throw new Error("Cart item not found");
+    return res.status(404).send({ error: "Cart item not found" });
   }
   await db
     .delete(cartItems)
     .where(eq(cartItems.cartItemId, parseInt(cartItemId)));
   return { success: true };
 });
-
 server.listen({ port: 8080 }, (err, address) => {
   if (err) {
     console.error(err);
